@@ -18,13 +18,19 @@ This directory contains the structure necessary to create a QPKG for pyTivo that
 
 ```sh
 cd `getcfg QDK Install_Path -f /etc/config/qpkg.conf`
-git clone https://github.com/kenstir/pytivo.git pyTivo-kenstir
+git clone https://github.com/kenstir/pytivo.git pyTivo
 ```
 
 ### Build a QPKG
 
-1. Run the make_qpkg script
+Run the make_qpkg script
 
 ```sh
 ./qnap/make_qpkg.sh
 ```
+
+The make_qpkg script leaves a copy of the qpkg file in `/share/Download/`.
+
+### Install your shiny new QPKG
+
+Use the manual installer to upload the qpkg file from `/share/Download/`.

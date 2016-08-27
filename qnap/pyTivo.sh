@@ -3,7 +3,7 @@
 # pyTivo.sh - QNAP init script
 
 CONF=/etc/config/qpkg.conf
-QPKG_NAME="pyTivo-kenstir"
+QPKG_NAME="pyTivo"
 QPKG_ROOT=`/sbin/getcfg $QPKG_NAME Install_Path -f ${CONF}`
 APACHE_ROOT=/share/`/sbin/getcfg SHARE_DEF defWeb -d Qweb -f /etc/config/def_share.info`
 
