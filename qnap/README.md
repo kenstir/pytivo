@@ -26,5 +26,5 @@ git clone https://github.com/kenstir/pytivo.git pyTivo-kenstir
 1. Run the make_qpkg script
 
 ```sh
-./qnap/make_qpkg
+./qnap/make_qpkg.sh
 ```
