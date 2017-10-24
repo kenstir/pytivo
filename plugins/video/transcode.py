@@ -657,7 +657,7 @@ def video_info(inFile, cache=True):
     mtime = os.path.getmtime(fname)
     if cache:
         if inFile in info_cache and info_cache[inFile][0] == mtime:
-            debug('CACHE HIT! %s' % inFile)
+            #debug('CACHE HIT! %s' % inFile)
             return info_cache[inFile][1]
 
     vInfo['Supported'] = True
