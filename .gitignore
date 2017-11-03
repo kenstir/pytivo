@@ -1,0 +1,4 @@
+debug.log
+
+# pyTivo.conf may have local configuration data we do not want to leak
+pyTivo.conf
