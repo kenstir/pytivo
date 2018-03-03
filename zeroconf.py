@@ -32,6 +32,7 @@ import socket
 import threading
 import select
 import traceback
+import logging
 
 __all__ = ["Zeroconf", "ServiceInfo", "ServiceBrowser"]
 
@@ -1179,6 +1180,9 @@ class Zeroconf(object):
         else:
             self.intf = bindaddress
         self.group = ('', _MDNS_PORT)
+        self.logger = logging.getLogger('pyTivo.zeroconf')
+        self.logger.debug('zeroconf: intf = %s', self.intf)
+        self.logger.debug('zeroconf: Binding to %s:%d', self.group[0], self.group[1])
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         try:
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -1502,6 +1506,7 @@ class Zeroconf(object):
             while packet:
                 bytes_sent = self.socket.sendto(packet, 0, (addr, port))
                 if bytes_sent < 0:
+                    self.logger.warning('zeroconf.send: sent %d of %d bytes to %s:%d', bytes_sent, len(packet), addr, port)
                     break
                 packet = packet[bytes_sent:]
         except:

@@ -111,6 +111,9 @@ class Beacon:
         self.UDPSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
         self.services = []
+        self.logger = logging.getLogger('pyTivo.beacon')
+        intf = self.UDPSock.getsockname()[0]
+        self.logger.debug('Beacon intf=%s', intf)
 
         self.platform = PLATFORM_VIDEO
         for section, settings in config.getShares():
@@ -123,11 +126,10 @@ class Beacon:
                 break
 
         if config.get_zc():
-            logger = logging.getLogger('pyTivo.beacon')
             try:
-                self.bd = ZCBroadcast(logger)
+                self.bd = ZCBroadcast(self.logger)
             except:
-                logger.error('Zeroconf failure')
+                self.logger.error('Zeroconf failure')
                 self.bd = None
         else:
             self.bd = None
@@ -163,6 +165,7 @@ class Beacon:
                     while packet:
                         result = self.UDPSock.sendto(packet, (beacon_ip, 2190))
                         if result < 0:
+                            self.logger.warning('send_beacon: sendto failed with result=%d', result)
                             break
                         packet = packet[result:]
                 except Exception, e:
@@ -222,6 +225,7 @@ class Beacon:
         our_beacon = self.format_beacon('connected', False)
         machine_name = re.compile('machine=(.*)\n').search
 
+        self.logger.debug('get_name address=%s', address)
         try:
             tsock = socket.socket()
             tsock.connect((address, 2190))

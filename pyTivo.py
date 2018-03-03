@@ -43,13 +43,13 @@ def setup(in_service=False):
     config.init_logging()
     sys.excepthook = exceptionLogger
 
+    bind_ip = config.get_server('bind_ip', '')
     port = config.getPort()
 
-    httpd = httpserver.TivoHTTPServer(('', int(port)),
+    httpd = httpserver.TivoHTTPServer((bind_ip, int(port)),
         httpserver.TivoHTTPHandler)
 
     logger = logging.getLogger('pyTivo')
-    logger.info('Last modified: ' + last_date())
     logger.info('Python: ' + platform.python_version())
     logger.info('System: ' + platform.platform())
 
