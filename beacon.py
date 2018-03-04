@@ -32,10 +32,12 @@ class ZCBroadcast:
         self.share_names = []
         self.share_info = []
         self.logger = logger
-        self.rz = zeroconf.Zeroconf()
+        bind_ip = config.get_server('bind_ip', '')
+        service_ip = config.get_server('bind_ip', config.get_ip())
+        self.rz = zeroconf.Zeroconf(bind_ip)
         self.renamed = {}
         old_titles = self.scan()
-        address = socket.inet_aton(config.get_ip())
+        address = socket.inet_aton(service_ip)
         port = int(config.getPort())
         logger.info('Announcing shares...')
         for section, settings in config.getShares():
@@ -96,7 +98,7 @@ class ZCBroadcast:
                     config.tivos[tsn] = {'name': name, 'address': address, 
                                          'port': port}
                     config.tivos[tsn].update(info.properties)
-                    self.logger.info(name)
+                    self.logger.info('%s at %s:%d', name, address, port)
 
         return names
 
@@ -108,12 +110,16 @@ class ZCBroadcast:
 
 class Beacon:
     def __init__(self):
+        self.logger = logging.getLogger('pyTivo.beacon')
+        # todo socket creation
         self.UDPSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        self.services = []
-        self.logger = logging.getLogger('pyTivo.beacon')
+        bind_ip = config.get_server('bind_ip', '')
+        self.UDPSock.bind((bind_ip, 0))
         intf = self.UDPSock.getsockname()[0]
         self.logger.debug('Beacon intf=%s', intf)
+
+        self.services = []
 
         self.platform = PLATFORM_VIDEO
         for section, settings in config.getShares():
@@ -144,7 +150,7 @@ class Beacon:
     def format_beacon(self, conntype, services=True):
         beacon = ['tivoconnect=1',
                   'method=%s' % conntype,
-                  'identity={%s}' % config.getGUID(),
+                  'identity=%s' % config.getGUID(),
                   'machine=%s' % socket.gethostname(),
                   'platform=%s' % self.platform]
 
@@ -202,6 +208,7 @@ class Beacon:
         import thread
 
         def server():
+            # todo socket creation
             TCPSock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             TCPSock.bind(('', 2190))
             TCPSock.listen(5)
@@ -227,6 +234,7 @@ class Beacon:
 
         self.logger.debug('get_name address=%s', address)
         try:
+            # todo socket creation
             tsock = socket.socket()
             tsock.connect((address, 2190))
             self.send_packet(tsock, our_beacon)

@@ -82,7 +82,9 @@ def get_server(name, default=None):
         return default
 
 def getGUID():
-    return str(guid)
+    if config.has_option('Server', 'identity'):
+        return config.get('Server', 'identity')
+    return '{' + str(guid) + '}'
 
 def get_ip(tsn=None):
     try:
@@ -90,6 +92,7 @@ def get_ip(tsn=None):
         dest_ip = tivos[tsn]['address']
     except:
         dest_ip = '4.2.2.1'
+    # todo socket creation
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect((dest_ip, 123))
     return s.getsockname()[0]
