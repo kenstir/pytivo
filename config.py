@@ -82,6 +82,8 @@ def get_server(name, default=None):
         return default
 
 def getGUID():
+    if config.has_option('Server', 'identity'):
+        return config.get('Server', 'identity')
     return str(guid)
 
 def get_ip(tsn=None):

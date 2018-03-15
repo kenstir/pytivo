@@ -32,10 +32,12 @@ class ZCBroadcast:
         self.share_names = []
         self.share_info = []
         self.logger = logger
-        self.rz = zeroconf.Zeroconf()
+        bind_ip = config.get_server('bind_ip', '')
+        service_ip = config.get_server('bind_ip', config.get_ip())
+        self.rz = zeroconf.Zeroconf(bind_ip)
         self.renamed = {}
         old_titles = self.scan()
-        address = socket.inet_aton(config.get_ip())
+        address = socket.inet_aton(service_ip)
         port = int(config.getPort())
         logger.info('Announcing shares...')
         for section, settings in config.getShares():
@@ -96,7 +98,7 @@ class ZCBroadcast:
                     config.tivos[tsn] = {'name': name, 'address': address, 
                                          'port': port}
                     config.tivos[tsn].update(info.properties)
-                    self.logger.info(name)
+                    self.logger.info('%s at %s:%d', name, address, port)
 
         return names
 
@@ -108,8 +110,14 @@ class ZCBroadcast:
 
 class Beacon:
     def __init__(self):
+        self.logger = logging.getLogger('pyTivo.beacon')
         self.UDPSock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.UDPSock.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        bind_ip = config.get_server('bind_ip', '')
+        self.UDPSock.bind((bind_ip, 0))
+        intf = self.UDPSock.getsockname()[0]
+        self.logger.debug('Beacon intf=%s', intf)
+
         self.services = []
 
         self.platform = PLATFORM_VIDEO
@@ -123,11 +131,10 @@ class Beacon:
                 break
 
         if config.get_zc():
-            logger = logging.getLogger('pyTivo.beacon')
             try:
-                self.bd = ZCBroadcast(logger)
+                self.bd = ZCBroadcast(self.logger)
             except:
-                logger.error('Zeroconf failure')
+                self.logger.error('Zeroconf failure')
                 self.bd = None
         else:
             self.bd = None

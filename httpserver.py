@@ -54,6 +54,7 @@ class TivoHTTPServer(SocketServer.ThreadingMixIn, BaseHTTPServer.HTTPServer):
         self.stop = False
         self.restart = False
         self.logger = logging.getLogger('pyTivo')
+        self.logger.info('Starting HTTP server on {0}:{1}'.format(server_address[0], server_address[1]))
         BaseHTTPServer.HTTPServer.__init__(self, server_address,
                                            RequestHandlerClass)
         self.daemon_threads = True

@@ -32,6 +32,7 @@ import socket
 import threading
 import select
 import traceback
+import logging
 
 __all__ = ["Zeroconf", "ServiceInfo", "ServiceBrowser"]
 
@@ -52,7 +53,7 @@ _BROWSER_TIME = 500
 _MDNS_ADDR = '224.0.0.251'
 _MDNS_PORT = 5353
 _DNS_PORT = 53
-_DNS_TTL = 60 * 60 # one hour default TTL
+_DNS_TTL = 120
 
 _MAX_MSG_TYPICAL = 1460 # unused
 _MAX_MSG_ABSOLUTE = 8972
@@ -1169,6 +1170,8 @@ class Zeroconf(object):
         multicast communications, listening and reaping threads."""
         global _GLOBAL_DONE
         _GLOBAL_DONE = False
+        self.logger = logging.getLogger('pyTivo.zeroconf')
+        self.bindaddress = bindaddress
         if bindaddress is None:
             try:
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -1180,8 +1183,8 @@ class Zeroconf(object):
             self.intf = bindaddress
         self.group = ('', _MDNS_PORT)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         except:
             # SO_REUSEADDR should be equivalent to SO_REUSEPORT for
@@ -1194,16 +1197,20 @@ class Zeroconf(object):
         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_TTL, 255)
         self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_LOOP, 1)
         try:
+            self.logger.debug('zeroconf: Binding to %s:%d', self.group[0], self.group[1])
             self.socket.bind(self.group)
         except:
             # Some versions of linux raise an exception even though
             # the SO_REUSE* options have been set, so ignore it
             #
             pass
-        #self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
-        #    socket.inet_aton(self.intf) + socket.inet_aton('0.0.0.0'))
-        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP,
-            socket.inet_aton(_MDNS_ADDR) + socket.inet_aton('0.0.0.0'))
+        if bindaddress is None:
+            self.ip_membership = socket.inet_aton(_MDNS_ADDR) + socket.inet_aton('0.0.0.0')
+        else:
+            self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_MULTICAST_IF,
+                socket.inet_aton(bindaddress))
+            self.ip_membership = socket.inet_aton(_MDNS_ADDR) + socket.inet_aton(bindaddress)
+        self.socket.setsockopt(socket.IPPROTO_IP, socket.IP_ADD_MEMBERSHIP, self.ip_membership)
 
         self.listeners = []
         self.browsers = []
@@ -1519,8 +1526,7 @@ class Zeroconf(object):
             self.unregisterAllServices()
             self.socket.setsockopt(socket.IPPROTO_IP,
                                    socket.IP_DROP_MEMBERSHIP,
-                                   socket.inet_aton(_MDNS_ADDR) +
-                                   socket.inet_aton('0.0.0.0'))
+                                   self.ip_membership)
             self.socket.close()
 
 # Test a few module features, including service registration, service
