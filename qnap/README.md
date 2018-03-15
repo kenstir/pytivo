@@ -4,7 +4,11 @@
 
 This directory contains the structure necessary to create a QPKG for pyTivo that runs on a QNAP NAS.
 
-## How to build
+## How to install a binary package
+
+Follow the instructions at https://forum.qnap.com/viewtopic.php?f=320&t=125497
+
+## How to build a QNAP package from sources
 
 ### One-time Setup
 
@@ -19,6 +23,7 @@ This directory contains the structure necessary to create a QPKG for pyTivo that
 ```sh
 cd `getcfg QDK Install_Path -f /etc/config/qpkg.conf`
 git clone https://github.com/kenstir/pytivo.git pyTivo
+cd pyTivo
 ```
 
 ### Build a QPKG
