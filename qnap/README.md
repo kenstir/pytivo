@@ -31,6 +31,8 @@ cd pyTivo
 Run the make_qpkg script
 
 ```sh
+cd `getcfg QDK Install_Path -f /etc/config/qpkg.conf`
+cd pyTivo
 ./qnap/make_qpkg.sh
 ```
 
