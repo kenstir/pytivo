@@ -53,7 +53,7 @@ _BROWSER_TIME = 500
 _MDNS_ADDR = '224.0.0.251'
 _MDNS_PORT = 5353
 _DNS_PORT = 53
-_DNS_TTL = 60 * 60 # one hour default TTL
+_DNS_TTL = 120
 
 _MAX_MSG_TYPICAL = 1460 # unused
 _MAX_MSG_ABSOLUTE = 8972
@@ -1174,20 +1174,17 @@ class Zeroconf(object):
         self.bindaddress = bindaddress
         if bindaddress is None:
             try:
-                # todo socket creation
                 s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
                 s.connect(('4.2.2.1', 123))
                 self.intf = s.getsockname()[0]
             except:
                 self.intf = socket.gethostbyname(socket.gethostname())
-            self.group = ('', _MDNS_PORT)
         else:
             self.intf = bindaddress
-            self.group = (bindaddress, _MDNS_PORT)
-        # todo socket creation
+        self.group = ('', _MDNS_PORT)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEPORT, 1)
         except:
             # SO_REUSEADDR should be equivalent to SO_REUSEPORT for
@@ -1512,7 +1509,6 @@ class Zeroconf(object):
             while packet:
                 bytes_sent = self.socket.sendto(packet, 0, (addr, port))
                 if bytes_sent < 0:
-                    self.logger.warning('zeroconf.send: sent %d of %d bytes to %s:%d', bytes_sent, len(packet), addr, port)
                     break
                 packet = packet[bytes_sent:]
         except:
