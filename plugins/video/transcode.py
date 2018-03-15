@@ -529,9 +529,8 @@ def tivo_compatible_video(vInfo, tsn, mime=''):
     message = (True, '')
     while True:
         codec = vInfo.get('vCodec', '')
-        is4k = config.is4Ktivo(tsn) and codec == 'hevc'
         if mime == 'video/x-tivo-mpeg-ts':
-            if not (is4k or codec in ('h264', 'mpeg2video')):
+            if not (codec in ('h264', 'mpeg2video')):
                 message = (False, 'vCodec %s not compatible' % codec)
 
             break
